@@ -1,4 +1,4 @@
-import {BASE_URL, Window} from "@/common/constant";
+import {BASE_URL, Window} from "@/utils/constant";
 import {redirect} from "next/navigation";
 import {useEffect} from "react";
 

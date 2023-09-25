@@ -1,5 +1,5 @@
-import {EVENTS_STATUS, MIXPANEL_EVENT} from "@/common/analytics";
-import {sendForwardRequest} from "@/common/requests";
+import {EVENTS_STATUS, MIXPANEL_EVENT} from "@/utils/analytics";
+import {sendForwardRequest} from "@/utils/requests";
 import base64url from "base64url";
 import mixpanel from "mixpanel-browser";
 import {GetServerSidePropsContext} from "next";
@@ -7,7 +7,7 @@ import Head from "next/head";
 import {stringify} from "querystring";
 import {useEffect} from "react";
 import requestIp from "request-ip";
-import {BASE_URL, BASE_URL_OG, Window, isProduction} from "../common/constant";
+import {BASE_URL, BASE_URL_OG, Window, isLocal} from "../utils/constant";
 import {UrlShortenerHistory} from "../types/shorten";
 
 const ogDescriptionDefault = "Quickshare rút gọn link và ghi chú miễn phí.";
@@ -57,20 +57,20 @@ const Forward = ({
 					() => {
 						location.replace(`${url.includes("http") ? "" : "//"}${url}`);
 					},
-					isProduction ? 0 : 2000
+					!isLocal ? 0 : 2000
 				);
-			} else {
-				throw error;
-			}
+			} else throw error;
 		} catch (error) {
 			mixpanel.track(MIXPANEL_EVENT.FORWARD, {
 				status: EVENTS_STATUS.FAILED,
 				history,
 				error,
 			});
-			if (isProduction) location.replace(`${BASE_URL}/404`);
+			location.replace(`${BASE_URL}/404`);
 		}
 	}, []);
+
+	if (isError) return null;
 
 	return (
 		<>
@@ -112,7 +112,7 @@ const Forward = ({
 				)}
 				{ogImgSrc && <meta property="og:image" content={ogImgSrc} />}
 			</Head>
-			{!isProduction && <div>{history?.url}</div>}
+			{isLocal && <div>{history?.url}</div>}
 		</>
 	);
 };
@@ -135,8 +135,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
 		return {
 			props: {
-                history: forwardUrl.history,
-                userAgent,
+				history: forwardUrl.history,
+				userAgent,
 				ip,
 			},
 		};
