@@ -2,13 +2,13 @@ import {BASE_URL, Window} from "@/common/constant";
 import {redirect} from "next/navigation";
 import {useEffect} from "react";
 
-const Redirect = () => {
+const PageNotFound = () => {
 	useEffect(() => {
 		try {
-			Window().location.replace(BASE_URL);
+			Window().location.replace(`${BASE_URL}/404`);
 		} catch (error) {}
 	}, []);
 	return null;
 };
 
-export default Redirect;
+export default PageNotFound;
