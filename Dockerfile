@@ -1,9 +1,8 @@
 # Get NPM packages
 FROM oven/bun:latest AS dependencies
 ARG NEXT_PUBLIC_SHORT_DOMAIN
-CMD ["echo", "NEXT_PUBLIC_SHORT_DOMAIN=$NEXT_PUBLIC_SHORT_DOMAIN"]
 WORKDIR /app
-COPY package.json yarn.lock prisma .env scripts/update_ip_db.sh ./
+COPY package.json bun.lockb prisma .env ./
 RUN bun install
 # add sharp for image production
 RUN bun install sharp
