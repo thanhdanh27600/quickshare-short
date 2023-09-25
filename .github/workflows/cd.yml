@@ -34,7 +34,6 @@ jobs:
         with:
           context: .
           build-args: |
-            "GEOLITE2_LICENSE_KEY=${{ secrets.GEOLITE2_LICENSE_KEY }}"
             NEXT_PUBLIC_SHORT_DOMAIN=true
           push: true
           tags: ghcr.io/${{ github.repository }}:latest

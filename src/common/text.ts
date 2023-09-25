@@ -8,10 +8,9 @@ export function extractHashFromURL(url: string): string | null {
 	// If a match is found, return the extracted parameter (group 2)
 	if (match && match[2]) {
 		return match[2].replace("/", "");
-	} else {
-		// Return null if there is no match
-		return null;
 	}
+	// Return null if there is no match
+	return null;
 }
 
 // // Test cases
