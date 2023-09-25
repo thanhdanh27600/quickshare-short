@@ -1,10 +1,10 @@
 # Get NPM packages
-FROM oven/bun:latest AS dependencies
+FROM node:18-alpine AS dependencies
 WORKDIR /app
-COPY package.json bun.lockb .env ./
-RUN bun install
+COPY package.json .env ./
+RUN npm install
 # add sharp for image production
-RUN bun install sharp
+RUN npm install sharp
 # Update IP Database
 # ENV GEOLITE2_LICENSE_KEY ${GEOLITE2_LICENSE_KEY}
 # RUN ./update_ip_db.sh
@@ -14,7 +14,7 @@ RUN bun install sharp
 FROM dependencies AS builder
 WORKDIR /app
 COPY . .
-RUN bun run build
+RUN npm run build
 
 # Production image, copy all the files and run next
 FROM builder AS runner
@@ -23,6 +23,6 @@ WORKDIR /app
 ENV NODE_ENV production
 
 EXPOSE 3000
-RUN bun -v
+RUN node -v
 
-CMD ["bun", "start"]
+CMD ["npm", "start"]
