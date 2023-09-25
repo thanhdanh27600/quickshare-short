@@ -59,16 +59,14 @@ const Forward = ({
 					},
 					isProduction ? 0 : 2000
 				);
-			} else {
-				throw error;
-			}
+			} else throw error;
 		} catch (error) {
 			mixpanel.track(MIXPANEL_EVENT.FORWARD, {
 				status: EVENTS_STATUS.FAILED,
 				history,
 				error,
 			});
-			if (isProduction) location.replace(`${BASE_URL}/404`);
+			location.replace(`${BASE_URL}/404`);
 		}
 	}, []);
 
@@ -135,8 +133,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
 		return {
 			props: {
-                history: forwardUrl.history,
-                userAgent,
+				history: forwardUrl.history,
+				userAgent,
 				ip,
 			},
 		};
