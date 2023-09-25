@@ -1,4 +1,4 @@
-import {MIX_PANEL_TOKEN, isProduction} from "@/common/constant";
+import {MIX_PANEL_TOKEN, isProduction} from "@/utils/constant";
 import "@/styles/globals.css";
 import mixpanel from "mixpanel-browser";
 import type {AppProps} from "next/app";
