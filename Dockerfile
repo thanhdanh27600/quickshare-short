@@ -1,6 +1,5 @@
 # Get NPM packages
 FROM oven/bun:latest AS dependencies
-ARG NEXT_PUBLIC_SHORT_DOMAIN
 WORKDIR /app
 COPY package.json bun.lockb .env ./
 RUN bun install
@@ -22,7 +21,6 @@ FROM builder AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
-ENV NEXT_PUBLIC_SHORT_DOMAIN $NEXT_PUBLIC_SHORT_DOMAIN
 
 EXPOSE 3000
 RUN bun -v
