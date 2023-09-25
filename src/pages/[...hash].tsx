@@ -70,6 +70,8 @@ const Forward = ({
 		}
 	}, []);
 
+	if (isError) return null;
+
 	return (
 		<>
 			<Head>
