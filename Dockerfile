@@ -2,7 +2,7 @@
 FROM oven/bun:latest AS dependencies
 ARG NEXT_PUBLIC_SHORT_DOMAIN
 WORKDIR /app
-COPY package.json bun.lockb prisma .env ./
+COPY package.json bun.lockb .env ./
 RUN bun install
 # add sharp for image production
 RUN bun install sharp
