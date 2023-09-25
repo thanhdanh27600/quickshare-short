@@ -1,5 +1,4 @@
 import {BASE_URL, Window} from "@/common/constant";
-import {redirect} from "next/navigation";
 import {useEffect} from "react";
 
 const Redirect = () => {
