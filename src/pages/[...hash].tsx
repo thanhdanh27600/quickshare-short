@@ -35,24 +35,21 @@ const Forward = ({
 
 	const isError = !history || !history?.hash || !!error;
 
-	useEffect(() => {
-		if (!Window()) {
-			return;
-		}
-		// start client-side forward
+	const startForward = async () => {
 		try {
 			if (!isError) {
-				sendForwardRequest({
-					hash: history.hash,
-					userAgent,
-					ip,
-					fromClientSide: true,
-				});
 				mixpanel.track(MIXPANEL_EVENT.FORWARD, {
 					status: EVENTS_STATUS.OK,
 					urlRaw: url,
 					hash,
 				});
+				await sendForwardRequest({
+					hash: history.hash,
+					userAgent,
+					ip,
+					fromClientSide: true,
+				});
+
 				setTimeout(
 					() => {
 						location.replace(`${url.includes("http") ? "" : "//"}${url}`);
@@ -68,6 +65,14 @@ const Forward = ({
 			});
 			location.replace(`${BASE_URL}/404`);
 		}
+	};
+
+	useEffect(() => {
+		if (!Window()) {
+			return;
+		}
+		// start client-side forward
+		startForward();
 	}, []);
 
 	if (isError) return null;
