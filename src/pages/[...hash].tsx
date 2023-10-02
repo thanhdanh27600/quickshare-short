@@ -7,8 +7,8 @@ import Head from "next/head";
 import {stringify} from "querystring";
 import {useEffect} from "react";
 import requestIp from "request-ip";
-import {BASE_URL, BASE_URL_OG, Window, isLocal} from "../utils/constant";
 import {UrlShortenerHistory} from "../types/shorten";
+import {BASE_URL, BASE_URL_OG, Window, isLocal} from "../utils/constant";
 
 const ogDescriptionDefault = "Quickshare rút gọn link và ghi chú miễn phí.";
 const ogTitleDefault = (hash: string) =>
@@ -33,6 +33,14 @@ const Forward = ({
 	const ogImgSrc = history?.ogImgSrc;
 	const encodeTitle = base64url.encode(ogTitle);
 
+	const redirect = () =>
+		setTimeout(
+			() => {
+				location.replace(`${url.includes("http") ? "" : "//"}${url}`);
+			},
+			!isLocal ? 0 : 2000
+		);
+
 	const isError = !history || !history?.hash || !!error;
 
 	const startForward = async () => {
@@ -49,13 +57,6 @@ const Forward = ({
 					ip,
 					fromClientSide: true,
 				});
-
-				setTimeout(
-					() => {
-						location.replace(`${url.includes("http") ? "" : "//"}${url}`);
-					},
-					!isLocal ? 0 : 2000
-				);
 			} else throw error;
 		} catch (error) {
 			mixpanel.track(MIXPANEL_EVENT.FORWARD, {
@@ -63,6 +64,10 @@ const Forward = ({
 				history,
 				error,
 			});
+		}
+		if (url) {
+			redirect();
+		} else {
 			location.replace(`${BASE_URL}/404`);
 		}
 	};
