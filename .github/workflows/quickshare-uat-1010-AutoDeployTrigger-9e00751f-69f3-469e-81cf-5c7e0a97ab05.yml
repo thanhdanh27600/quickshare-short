@@ -1,0 +1,42 @@
+name: Trigger auto deployment for quickshare-uat-1010
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ uat ]
+    paths:
+    - '**'
+    - '.github/workflows/quickshare-uat-1010-AutoDeployTrigger-9e00751f-69f3-469e-81cf-5c7e0a97ab05.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.QUICKSHAREUAT1010_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: ghcr.io
+          registryUsername: ${{ secrets.QUICKSHAREUAT1010_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.QUICKSHAREUAT1010_REGISTRY_PASSWORD }}
+          containerAppName: quickshare-uat-1010
+          resourceGroup: shared
+          imageToBuild: ghcr.io/ghcr.io/thanhdanh27600/quickshare-short:${{ github.sha }}
+          
+
+     
+
