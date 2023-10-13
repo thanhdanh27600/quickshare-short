@@ -1,14 +1,15 @@
 import {EVENTS_STATUS, MIXPANEL_EVENT} from "@/utils/analytics";
-import {sendForwardRequest} from "@/utils/requests";
+import {forward, sendForwardRequest} from "@/utils/requests";
 import base64url from "base64url";
 import mixpanel from "mixpanel-browser";
 import {GetServerSidePropsContext} from "next";
 import Head from "next/head";
 import {stringify} from "querystring";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import requestIp from "request-ip";
 import {UrlShortenerHistory} from "../types/shorten";
 import {BASE_URL, BASE_URL_OG, Window, isLocal} from "../utils/constant";
+import {ValidatePassword} from "@/component/ValidatePassword";
 
 const ogDescriptionDefault = "Quickshare rút gọn link và ghi chú miễn phí.";
 const ogTitleDefault = (hash: string) =>
@@ -26,38 +27,38 @@ const Forward = ({
 	error?: any;
 }) => {
 	const hash = history?.hash;
-	const url = history?.url;
+	let url = history?.url;
 	const theme = history?.theme;
 	const ogTitle = history?.ogTitle || ogTitleDefault(hash);
 	const ogDescription = history?.ogDescription || ogDescriptionDefault;
 	const ogImgSrc = history?.ogImgSrc;
 	const encodeTitle = base64url.encode(ogTitle);
 
-	const redirect = () =>
-		setTimeout(
-			() => {
-				location.replace(`${url.includes("http") ? "" : "//"}${url}`);
-			},
-			!isLocal ? 0 : 2000
-		);
+	const [loading, setLoading] = useState(true);
 
+	const isUnauthorized = error === "UNAUTHORIZED";
 	const isError = !history || !history?.hash || !!error;
 
 	const startForward = async () => {
 		try {
-			if (!isError) {
-				mixpanel.track(MIXPANEL_EVENT.FORWARD, {
-					status: EVENTS_STATUS.OK,
-					urlRaw: url,
-					hash,
-				});
-				await sendForwardRequest({
-					hash: history.hash,
-					userAgent,
-					ip,
-					fromClientSide: true,
-				});
-			} else throw error;
+			if (isUnauthorized && !localStorage.getItem("quickshare-token")) {
+				setLoading(false);
+				return;
+			}
+			if (isError && !isUnauthorized) throw error;
+			mixpanel.track(MIXPANEL_EVENT.FORWARD, {
+				status: EVENTS_STATUS.OK,
+				urlRaw: url,
+				hash,
+			});
+			const {history: _history} = await sendForwardRequest({
+				hash: history.hash,
+				userAgent,
+				ip,
+				fromClientSide: true,
+			});
+			url = _history.url;
+			localStorage.setItem("quickshare-token", "");
 		} catch (error) {
 			mixpanel.track(MIXPANEL_EVENT.FORWARD, {
 				status: EVENTS_STATUS.FAILED,
@@ -66,10 +67,11 @@ const Forward = ({
 			});
 		}
 		if (url) {
-			redirect();
-		} else {
-			location.replace(`${BASE_URL}/404`);
+			return forward(url);
 		}
+		setLoading(false);
+		if (isUnauthorized) return;
+		location.replace(`${BASE_URL}/404`);
 	};
 
 	useEffect(() => {
@@ -80,7 +82,10 @@ const Forward = ({
 		startForward();
 	}, []);
 
-	if (isError) return null;
+	if (isUnauthorized && !loading) {
+		return <ValidatePassword open={true} hash={hash} />;
+	}
+	if (isError) return isLocal ? error : null;
 
 	return (
 		<>
@@ -128,10 +133,10 @@ const Forward = ({
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+	const {hash} = context.query;
+	const ip = requestIp.getClientIp(context.req) || "";
+	const userAgent = context.req.headers["user-agent"] || "Unknown";
 	try {
-		const {hash} = context.query;
-		const ip = requestIp.getClientIp(context.req) || "";
-		const userAgent = context.req.headers["user-agent"] || "Unknown";
 		// start server-side forward
 		const forwardUrl = await sendForwardRequest({
 			hash: hash ? (hash[0] as string) : "",
@@ -139,6 +144,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 			ip,
 			fromClientSide: false,
 		});
+
+		if (forwardUrl?.errorCode === 401) throw new Error("UNAUTHORIZED");
 
 		if (!forwardUrl?.history)
 			throw new Error("Cannot found history to forward");
@@ -153,6 +160,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 	} catch (error: any) {
 		return {
 			props: {
+				history: {hash: hash ? (hash[0] as string) : ""},
+				userAgent,
+				ip,
 				error: error.message || "somethingWrong",
 			},
 		};

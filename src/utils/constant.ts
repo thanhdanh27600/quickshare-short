@@ -8,6 +8,10 @@ export const brandUrlShort = "https://qsh.at";
 export const brandUrlUat = "https://uat.quickshare.at";
 export const brandUrlShortUat = "https://uat.qsh.at";
 
+export const cdnUrl =
+	"https://cdn.jsdelivr.net/gh/thanhdanh27600/quickshare@production/public";
+export const cdn = (file: string) => `${cdnUrl}${file}`;
+
 export const baseUrl = (useShortDomain: boolean = false) => {
 	if (isProduction) {
 		return useShortDomain ? brandUrlShort : brandUrl;
@@ -25,5 +29,6 @@ export const BASE_URL_OG = !isLocal
 
 export const Window = () =>
 	"object" === typeof window && window ? (window as any) : undefined;
+export const TE = () => Window()?.te;
 
 export const MIX_PANEL_TOKEN = process.env.NEXT_PUBLIC_MIX_PANEL_TOKEN;
