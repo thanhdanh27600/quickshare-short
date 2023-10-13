@@ -35,4 +35,18 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ github.repository }}:uat-latest
-  
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.QUICKSHAREUAT1010_AZURE_CREDENTIALS }}
+
+      - name: Deploy to container image
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          containerAppName: quickshare-uat-1010
+          resourceGroup: shared
+          imageToDeploy: ghcr.io/${{ github.repository }}:uat-latest
