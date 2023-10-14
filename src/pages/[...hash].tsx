@@ -16,6 +16,7 @@ const ogTitleDefault = (hash: string) =>
 	`Chia sẻ link <${hash}> với mọi người. Khám phá ngay!`;
 
 const Forward = ({
+	token: tokenS,
 	history,
 	ip,
 	userAgent,
@@ -25,6 +26,7 @@ const Forward = ({
 	ip: string;
 	history: UrlShortenerHistory;
 	error?: any;
+	token: string;
 }) => {
 	const hash = history?.hash;
 	let url = history?.url;
@@ -40,8 +42,9 @@ const Forward = ({
 	const isError = !history || !history?.hash || !!error;
 
 	const startForward = async () => {
+		const token = tokenS || localStorage.getItem("quickshare-token");
 		try {
-			if (isUnauthorized && !localStorage.getItem("quickshare-token")) {
+			if (isUnauthorized && !token) {
 				setLoading(false);
 				return;
 			}
@@ -67,7 +70,7 @@ const Forward = ({
 			});
 		}
 		if (url) {
-			return forward(url);
+			return forward(url, token);
 		}
 		setLoading(false);
 		if (isUnauthorized) return;
@@ -152,6 +155,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
 		return {
 			props: {
+				token: forwardUrl.token,
 				history: forwardUrl.history,
 				userAgent,
 				ip,
