@@ -1,3 +1,4 @@
+import base64url from "base64url";
 import {BASE_URL, isLocal} from "./constant";
 
 export function withAuth(token?: string) {
@@ -9,10 +10,11 @@ export function withAuth(token?: string) {
 	};
 }
 
-export const forward = (url: string) =>
+export const forward = (url: string, token?: string | null) =>
 	setTimeout(
 		() => {
-			location.replace(`${url.includes("http") ? "" : "//"}${url}`);
+			const query = token ? `?token=${base64url.encode(token)}` : "";
+			location.replace(`${url.includes("http") ? "" : "//"}${url}${query}`);
 		},
 		!isLocal ? 0 : 2000
 	);
