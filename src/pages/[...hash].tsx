@@ -10,13 +10,14 @@ import requestIp from "request-ip";
 import {UrlShortenerHistory} from "../types/shorten";
 import {BASE_URL, BASE_URL_OG, Window, isLocal} from "../utils/constant";
 import {ValidatePassword} from "@/component/ValidatePassword";
+import {redirect} from "next/navigation";
+import isbot from "isbot";
 
 const ogDescriptionDefault = "Quickshare rút gọn link và ghi chú miễn phí.";
 const ogTitleDefault = (hash: string) =>
 	`Chia sẻ link <${hash}> với mọi người. Khám phá ngay!`;
 
 const Forward = ({
-	token: tokenS,
 	history,
 	ip,
 	userAgent,
@@ -42,7 +43,7 @@ const Forward = ({
 	const isError = !history || !history?.hash || !!error;
 
 	const startForward = async () => {
-		const token = tokenS || localStorage.getItem("quickshare-token");
+		const token = localStorage.getItem("quickshare-token");
 		try {
 			if (isUnauthorized && !token) {
 				setLoading(false);
@@ -54,14 +55,16 @@ const Forward = ({
 				urlRaw: url,
 				hash,
 			});
-			const {history: _history} = await sendForwardRequest({
-				hash: history.hash,
-				userAgent,
-				ip,
-				fromClientSide: true,
-			});
-			url = _history.url;
-			localStorage.setItem("quickshare-token", "");
+			if (isUnauthorized) {
+				const {history: _history} = await sendForwardRequest({
+					hash: history.hash,
+					userAgent,
+					ip,
+					fromClientSide: true,
+				});
+				url = _history.url;
+				localStorage.setItem("quickshare-token", "");
+			}
 		} catch (error) {
 			mixpanel.track(MIXPANEL_EVENT.FORWARD, {
 				status: EVENTS_STATUS.FAILED,
@@ -145,22 +148,34 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 			hash: hash ? (hash[0] as string) : "",
 			userAgent,
 			ip,
-			fromClientSide: false,
+			fromClientSide: !isbot(userAgent),
 		});
 
 		if (forwardUrl?.errorCode === 401) throw new Error("UNAUTHORIZED");
-
-		if (!forwardUrl?.history)
-			throw new Error("Cannot found history to forward");
-
-		return {
-			props: {
-				token: forwardUrl.token,
-				history: forwardUrl.history,
-				userAgent,
-				ip,
-			},
-		};
+		const history = forwardUrl?.history as UrlShortenerHistory | undefined;
+		if (!history) throw new Error("Cannot found history to forward");
+		if (!history.url) throw new Error("Cannot found url to forward");
+		const shouldRedirectNow =
+			new Date(history.createdAt).getTime() ===
+			new Date(history.updatedAt).getTime();
+		const destination = `${history.url.includes("http") ? "" : "http://"}${
+			history.url
+		}`;
+		return shouldRedirectNow
+			? {
+					redirect: {
+						permanent: true,
+						destination,
+					},
+			  }
+			: {
+					props: {
+						token: forwardUrl.token,
+						history: forwardUrl.history,
+						userAgent,
+						ip,
+					},
+			  };
 	} catch (error: any) {
 		return {
 			props: {
