@@ -2,7 +2,7 @@ export const isLocal = process.env.NEXT_PUBLIC_BUILD_ENV === "local";
 export const isUAT = process.env.NEXT_PUBLIC_BUILD_ENV === "uat";
 export const isProduction = process.env.NEXT_PUBLIC_BUILD_ENV === "production";
 
-export const localUrl = "http://localhost:5000";
+export const localUrl = "http://localhost:5050";
 export const brandUrl = "https://quickshare.at";
 export const brandUrlShort = "https://qsh.at";
 export const brandUrlUat = "https://uat.quickshare.at";
@@ -19,7 +19,7 @@ export const baseUrl = (useShortDomain: boolean = false) => {
 	if (isUAT) {
 		return useShortDomain ? brandUrlShortUat : brandUrlUat;
 	}
-	return "http://localhost:5000";
+	return "http://localhost:5050";
 };
 export const BASE_URL = baseUrl();
 export const BASE_URL_SHORT = baseUrl(true);
