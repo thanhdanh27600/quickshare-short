@@ -14,7 +14,7 @@ export function extractHashFromURL(url: string): string | null {
 }
 
 // // Test cases
-// const url1 = "http://localhost:5000/xxx";
+// const url1 = "http://localhost:5050/xxx";
 // const url2 = "https://example.com/123";
 
 // const param1 = extractHashFromURL(url1);
