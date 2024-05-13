@@ -141,14 +141,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 	const {hash} = context.query;
 	const ip = requestIp.getClientIp(context.req) || "";
 	const userAgent = context.req.headers["user-agent"] || "Unknown";
+	const payload = {
+		hash: hash ? (hash[0] as string) : "",
+		userAgent,
+		ip,
+		fromClientSide: !isbot(userAgent),
+	};
 	try {
 		// start server-side forward
-		const forwardUrl = await sendForwardRequest({
-			hash: hash ? (hash[0] as string) : "",
-			userAgent,
-			ip,
-			fromClientSide: !isbot(userAgent),
-		});
+		const forwardUrl = await sendForwardRequest(payload);
 
 		if (forwardUrl?.errorCode === 401) throw new Error("UNAUTHORIZED");
 		const history = forwardUrl?.history as UrlShortenerHistory | undefined;
@@ -176,7 +177,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 					},
 			  };
 	} catch (error: any) {
-		console.error("Forward Error", error);
+		console.table(payload);
+		console.error(`Forward [${hash}]`, error?.message);
 		return {
 			props: {
 				history: {hash: hash ? (hash[0] as string) : ""},
