@@ -1,6 +1,8 @@
+import {ValidatePassword} from "@/component/ValidatePassword";
 import {EVENTS_STATUS, MIXPANEL_EVENT} from "@/utils/analytics";
 import {forward, sendForwardRequest} from "@/utils/requests";
 import base64url from "base64url";
+import isbot from "isbot";
 import mixpanel from "mixpanel-browser";
 import {GetServerSidePropsContext} from "next";
 import Head from "next/head";
@@ -9,9 +11,6 @@ import {useEffect, useState} from "react";
 import requestIp from "request-ip";
 import {UrlShortenerHistory} from "../types/shorten";
 import {BASE_URL, BASE_URL_OG, Window, isLocal} from "../utils/constant";
-import {ValidatePassword} from "@/component/ValidatePassword";
-import {redirect} from "next/navigation";
-import isbot from "isbot";
 
 const ogDescriptionDefault = "Quickshare rút gọn link và ghi chú miễn phí.";
 const ogTitleDefault = (hash: string) =>
@@ -177,6 +176,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 					},
 			  };
 	} catch (error: any) {
+		console.error("Forward Error", error);
 		return {
 			props: {
 				history: {hash: hash ? (hash[0] as string) : ""},
