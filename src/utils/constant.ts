@@ -32,3 +32,4 @@ export const Window = () =>
 export const TE = () => Window()?.te;
 
 export const MIX_PANEL_TOKEN = process.env.NEXT_PUBLIC_MIX_PANEL_TOKEN;
+export const HASH_REGEX = /^[a-zA-Z0-9_-]+$/;

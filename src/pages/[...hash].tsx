@@ -10,7 +10,13 @@ import {stringify} from "querystring";
 import {useEffect, useState} from "react";
 import requestIp from "request-ip";
 import {UrlShortenerHistory} from "../types/shorten";
-import {BASE_URL, BASE_URL_OG, Window, isLocal} from "../utils/constant";
+import {
+	BASE_URL,
+	BASE_URL_OG,
+	HASH_REGEX,
+	Window,
+	isLocal,
+} from "../utils/constant";
 
 const ogDescriptionDefault = "Quickshare rút gọn link và ghi chú miễn phí.";
 const ogTitleDefault = (hash: string) =>
@@ -139,10 +145,13 @@ const Forward = ({
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
 	const {hash} = context.query;
+	const hashQuery = hash?.[0] || "";
+	if (!hashQuery || !HASH_REGEX.test(hashQuery))
+		throw new Error("Invalid hash");
 	const ip = requestIp.getClientIp(context.req) || "";
 	const userAgent = context.req.headers["user-agent"] || "Unknown";
 	const payload = {
-		hash: hash ? (hash[0] as string) : "",
+		hash: hashQuery,
 		userAgent,
 		ip,
 		fromClientSide: !isbot(userAgent),
@@ -178,10 +187,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 			  };
 	} catch (error: any) {
 		console.table(payload);
-		console.error(`Forward [${hash}]`, error?.message);
+		console.error(`Forward [${hashQuery}]`, error?.message);
 		return {
 			props: {
-				history: {hash: hash ? (hash[0] as string) : ""},
+				history: {hash: hashQuery},
 				userAgent,
 				ip,
 				error: error.message || "somethingWrong",
