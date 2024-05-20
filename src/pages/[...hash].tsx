@@ -146,8 +146,6 @@ const Forward = ({
 export async function getServerSideProps(context: GetServerSidePropsContext) {
 	const {hash} = context.query;
 	const hashQuery = hash?.[0] || "";
-	if (!hashQuery || !HASH_REGEX.test(hashQuery))
-		throw new Error("Invalid hash");
 	const ip = requestIp.getClientIp(context.req) || "";
 	const userAgent = context.req.headers["user-agent"] || "Unknown";
 	const payload = {
@@ -156,8 +154,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 		ip,
 		fromClientSide: !isbot(userAgent),
 	};
+	// start server-side forward
+
 	try {
-		// start server-side forward
+		if (!hashQuery || !HASH_REGEX.test(hashQuery))
+			throw new Error("Invalid Hash");
+
 		const forwardUrl = await sendForwardRequest(payload);
 
 		if (forwardUrl?.errorCode === 401) throw new Error("UNAUTHORIZED");
