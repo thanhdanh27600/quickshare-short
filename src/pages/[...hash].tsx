@@ -144,19 +144,23 @@ const Forward = ({
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-	const {hash} = context.query;
-	const hashQuery = hash?.[0] || "";
-	const ip = requestIp.getClientIp(context.req) || "";
-	const userAgent = context.req.headers["user-agent"] || "Unknown";
-	const payload = {
-		hash: hashQuery,
-		userAgent,
-		ip,
-		fromClientSide: !isbot(userAgent),
-	};
-	// start server-side forward
-
+	let payload = undefined;
+	let hashQuery = "";
+	let ip = "";
+	let userAgent = "";
 	try {
+		const hash = context.query?.hash;
+		hashQuery = hash?.[0] || "";
+		ip = requestIp.getClientIp(context.req) || "";
+		userAgent = context.req.headers["user-agent"] || "Unknown";
+		payload = {
+			hash: hashQuery,
+			userAgent,
+			ip,
+			fromClientSide: !isbot(userAgent),
+		};
+		// start server-side forward
+
 		if (!hashQuery || !HASH_REGEX.test(hashQuery))
 			throw new Error("Invalid Hash");
 
@@ -189,7 +193,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 			  };
 	} catch (error: any) {
 		console.table(payload);
-		console.error(`Forward [${hashQuery}]`, error?.message);
+		console.error(`Forward [${hashQuery}]`, error);
 		return {
 			props: {
 				history: {hash: hashQuery},
