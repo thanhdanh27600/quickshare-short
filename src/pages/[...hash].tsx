@@ -192,8 +192,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 					},
 			  };
 	} catch (error: any) {
-		console.table(payload);
-		console.error(`Forward [${hashQuery}]`, error);
+		// console.table(payload);
+		console.error(`Forward [${hashQuery}]`, error.message);
 		return {
 			props: {
 				history: {hash: hashQuery},
